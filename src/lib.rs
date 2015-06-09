@@ -1,3 +1,4 @@
+#![feature(const_fn)]
 #![feature(optin_builtin_traits)]
 
 extern crate num;

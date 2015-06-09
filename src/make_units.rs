@@ -87,14 +87,23 @@ macro_rules! make_units_adv { ($System:ident, $Unitless:ident, $one:ident, $OneT
             }
         }
 
-    pub type $Unitless<V> = Dim<$System, V>;
     impl Dimensionless for $System {}
+    pub type $Unitless<V> = Dim<$System, V>;
+
     #[allow(non_upper_case_globals)]
     pub const $one: $Unitless<$OneType> = Dim(1.0, PhantomData);
 
     __make_types!($System, $($Type, $Root),+ |);
 
     $(#[allow(non_upper_case_globals)] pub const $constant: $Type<$OneType> = Dim(1.0, PhantomData));*;
+
+
+    // Here we try to make const fns for use in making derived constants, and then
+    // hopefully we can name types from them:
+
+    // const fn __add<Dl: KeepDim<Dr>, Dr, Vl: Add<Vr>, Vr>(l: Dl<Vl>, r: Dr<Vr>) -> <Dl<V> as KeepDim<Dr<V>>>::Output<<V as Add>::Output> {
+    //     <Dl as KeepDim<Dr>>::Output<l.0 + r.0>
+    // }
 
     // $(__make_derived!($Derived, $e));*;
 
@@ -120,10 +129,12 @@ macro_rules! count_args {
 macro_rules! __make_types {
     ($System:ident, $Type:ident, $Root:ident, $($Types:ident, $Roots:ident),+ | $($Zeros:ident),*) => (
         pub type $Type<V> = Dim<$System< $($Zeros,)* $Root>, V>;
+        // impl<V> Unit<V> for $Type<V> {}
         __make_types!($System, $($Types, $Roots),+ | Zero $(, $Zeros)*);
         );
     ($System:ident, $Type:ident, $Root:ident | $($Zeros:ident),*) => (
         pub type $Type<V> = Dim<$System<$($Zeros,)* $Root>, V>;
+        // impl Unit for $Type {}
         );
 }
 

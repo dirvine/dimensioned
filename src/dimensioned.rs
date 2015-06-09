@@ -37,7 +37,7 @@ pub trait DimToString: Dimension {
 pub struct Dim<D: Dimension, V>(pub V, pub PhantomData<D>);
 
 impl<D: Dimension, V> Dim<D, V> {
-    pub fn new(v: V) -> Dim<D, V> {
+    pub const fn new(v: V) -> Dim<D, V> {
         Dim(v, PhantomData)
     }
 }
