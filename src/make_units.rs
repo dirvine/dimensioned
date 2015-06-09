@@ -87,14 +87,16 @@ macro_rules! make_units_adv { ($System:ident, $Unitless:ident, $one:ident, $OneT
             }
         }
 
-    pub type $Unitless = $System;
-    impl Dimensionless for $Unitless {}
+    pub type $Unitless<V> = Dim<$System, V>;
+    impl Dimensionless for $System {}
     #[allow(non_upper_case_globals)]
-    pub const $one: Dim<$Unitless, $OneType> = Dim(1.0, PhantomData);
+    pub const $one: $Unitless<$OneType> = Dim(1.0, PhantomData);
 
     __make_types!($System, $($Type, $Root),+ |);
 
-    $(#[allow(non_upper_case_globals)] pub const $constant: Dim<$Type, $OneType> = Dim(1.0, PhantomData));*;
+    $(#[allow(non_upper_case_globals)] pub const $constant: $Type<$OneType> = Dim(1.0, PhantomData));*;
+
+    // $(__make_derived!($Derived, $e));*;
 
     // $(#[allow(non_upper_case_globals)] pub const $derived_constant: Dim<TYPEPEPEPE, f64> = $e;)*
 
@@ -117,25 +119,33 @@ macro_rules! count_args {
 #[macro_export]
 macro_rules! __make_types {
     ($System:ident, $Type:ident, $Root:ident, $($Types:ident, $Roots:ident),+ | $($Zeros:ident),*) => (
-        pub type $Type = $System< $($Zeros,)* $Root>;
+        pub type $Type<V> = Dim<$System< $($Zeros,)* $Root>, V>;
         __make_types!($System, $($Types, $Roots),+ | Zero $(, $Zeros)*);
         );
     ($System:ident, $Type:ident, $Root:ident | $($Zeros:ident),*) => (
-        pub type $Type = $System<$($Zeros,)* $Root>;
+        pub type $Type<V> = Dim<$System<$($Zeros,)* $Root>, V>;
         );
 }
 
+// #[doc_hidden]
 // #[macro_export]
-// macro_rules! __make_derived_type {
+// macro_rules! __make_derived {
 //     ($D:ident, $e: expr) => (
-//         pub type $D = __convert_expression!($e);
+//         pub type $D = __yes!{}
+//         );
+// }
+// #[macro_export]
+// macro_rules! __yes {
+//     () => (
+//         f64
 //         );
 // }
 
+// #[doc_hidden]
 // #[macro_export]
 // macro_rules! __convert_expression {
-//     ($a:ident * $b: expr) => ($a as MulDim<__convert_expression!($b)>>::Output);
-//     ($a:ident / $b: expr) => ($a as DivDim<__convert_expression!($b)>>::Output);
+//     ($a:ident * $b:expr) => ($a as MulDim<__convert_expression!($b)>>::Output);
+//     ($a:ident / $b:expr) => ($a as DivDim<__convert_expression!($b)>>::Output);
 //     ($a:ident) => ($a);
 // }
 
